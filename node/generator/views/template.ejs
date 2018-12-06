@@ -1,0 +1,84 @@
+<el-form :model="ruleForm"
+         :rules="rules"
+         ref="ruleForm"
+         label-width="100px"
+         class="demo-ruleForm">
+    <% datas.forEach(function(item){ -%>
+        <%# 为1时是input输入框组件  -%>
+        <% if(item.componentsstype === 1) { -%>
+            <el-form-item label="<%= item.label %>" prop="<%= item.field %>">
+                <% if(item.placeholder) { -%>
+                    <el-input v-model="ruleForm.<%= item.field %>" placeholder="<%= item.placeholder %>"></el-input>
+                <% }else { -%>
+                    <el-input v-model="ruleForm.<%= item.field %>" placeholder="请输入<%= item.label %>"></el-input>
+                <% } -%>
+            </el-form-item>
+        <% } -%>
+        <%# 为2时是选择框组件  -%>
+        <% if(item.componentsstype === 2) { -%>
+            <el-form-item label="<%= item.label %>" prop="<%= item.field %>">
+                <% if(item.placeholder) { -%>
+                    <el-select v-model="ruleForm.<%= item.field %>" placeholder="<%= item.placeholder %>">
+                        <% item.selectvalue.forEach(function(v) { -%>
+                            <el-option key="<%= v.value %>" label="<%= v.label %>" value="<%= v.value %>"></el-option>
+                        <% }) -%>
+                    </el-select>
+                <% }else { -%>
+                    <el-select v-model="ruleForm.<%= item.field %>" placeholder="请选择<%= item.label %>">
+                        <% item.selectvalue.forEach(function(v) { -%>
+                            <el-option key="<%= v.value %>" label="<%= v.label %>" value="<%= v.value %>"></el-option>
+                        <% }) -%>
+                    </el-select>
+                <% } -%>
+            </el-form-item>
+        <% } -%>
+        <%# 为3时是textarea组件  -%>
+        <% if(item.componentsstype === 3) { -%>
+            <el-form-item label="<%= item.label %>" prop="<%= item.field %>">
+                <% if(item.placeholder) { -%>
+                    <el-input type="textarea" :rows="<%= item.rows %>" v-model="ruleForm.<%= item.field %>" placeholder="<%= item.placeholder %>"></el-input>
+                <% }else { -%>
+                    <el-input type="textarea" :rows="<%= item.rows %>" v-model="ruleForm.<%= item.field %>" placeholder="请输入<%= item.label %>"></el-input>
+                <% } -%>
+            </el-form-item>
+        <% } -%>
+        <%# 为4时是radio组件  -%>
+        <% if(item.componentsstype === 4) { -%>
+            <el-form-item label="<%= item.label %>" prop="<%= item.field %>">
+                <% item.selectvalue.forEach(function(v) { -%>
+                    <el-radio v-model="ruleForm.<%= item.field %>" label="<%= v.value %>"><%= v.label %></el-radio>
+                <% }) -%>
+            </el-form-item>
+        <% } -%>
+        <%# 为5时是checkbox组件  -%>
+        <% if(item.componentsstype === 5) { -%>
+            <el-form-item label="<%= item.label %>" prop="<%= item.field %>">
+                <el-checkbox-group v-model="ruleForm.<%= item.field %>">
+                    <% item.selectvalue.forEach(function(v) { -%>
+                        <el-checkbox label="<%= v.value %>"><%= v.label %></el-checkbox>
+                    <% }) -%>
+                </el-checkbox-group>
+            </el-form-item>
+        <% } -%>
+        <%# 为6时是timePick组件  -%>
+        <% if(item.componentsstype === 6) { -%>
+            <el-form-item label="<%= item.label %>" prop="<%= item.field %>">
+                <% if(item.placeholder) { -%>
+                <el-date-picker
+                        v-model="ruleForm.<%=item.field%>"
+                        type="date"
+                        placeholder="<%=item.placeholder%>">
+                </el-date-picker>
+                <% }else{-%>
+                <el-date-picker
+                        v-model="ruleForm.<%=item.field%>"
+                        type="date"
+                        placeholder="请选择<%=item.label%>">
+                </el-date-picker>
+                <% }-%>
+            </el-form-item>
+        <% } -%>
+        <%# 为7时是上传组件  -%>
+    <% }); -%>
+        <el-button type="primary" @click.native="submit('ruleForm')">确定</el-button>
+</el-form>

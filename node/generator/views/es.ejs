@@ -1,0 +1,12 @@
+rules: {
+<% datas.forEach(function(item) { -%>
+    <%= item.field %>: [
+    <% if(item.required) { -%>
+        { required: true, message: '请输入<%= item.label %>', trigger: 'blur' },
+    <% } -%>
+    <% if(item.min !== 0) { -%>
+        { min: <%= item.min %>, max: <%= item.max %>, message: '长度在 <%= item.min %> 到 <%= item.max %> 个字符', trigger: 'blur' }
+    <% } -%>
+    ],
+<% }) -%>
+}
