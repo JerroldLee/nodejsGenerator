@@ -19,8 +19,13 @@
           v-model="textarea">
         </el-input>
         <el-button type="success"
-                   @click.native="jsonsubmit"
-                   style="margin-top: 12px;">提交
+                   @click.native="jsonsubmit(1)"
+                   style="margin-top: 12px;">提交生成表单
+        </el-button>
+
+        <el-button type="success"
+                   @click.native="jsonsubmit(2)"
+                   style="margin-top: 12px;">提交生成表格
         </el-button>
       </div>
       <div class="right">
@@ -107,6 +112,29 @@
             <!-- textarea选择框属性 end -->
           </el-form>
         </div>
+        <!--<div class="box">-->
+          <!--<span>字段: name</span>-->
+          <!--<el-form>-->
+            <!--<el-form-item label="输入显示值(通常为中文)">-->
+              <!--<el-input placeholder="请输入内容(不填则使用默认语句)"></el-input>-->
+            <!--</el-form-item>-->
+            <!--<el-form-item label="是否需要render函数（自定义时使用）">-->
+              <!--<el-switch-->
+                <!--active-color="#13ce66"-->
+                <!--inactive-color="#ff4949">-->
+              <!--</el-switch>-->
+            <!--</el-form-item>-->
+          <!--</el-form>-->
+        <!--</div>-->
+        <!--<el-form>-->
+          <!--<el-form-item label="是否需要'操作'按钮?">-->
+            <!--<el-switch-->
+              <!--v-model="dialogTableVisible2"-->
+              <!--active-color="#13ce66"-->
+              <!--inactive-color="#ff4949">-->
+            <!--</el-switch>-->
+          <!--</el-form-item>-->
+        <!--</el-form>-->
         <el-form>
           <el-form-item>
             <el-col :span="24">
@@ -169,8 +197,28 @@
       <el-button type="danger"
                  @click.native="resolveEntity"
                  style="width: 100%;margin-top: 20px;">
-        点击确定直接进行Generate
+        点击确定直接进行Generate(正在建设...)
       </el-button>
+    </el-dialog>
+
+    <el-dialog title="操作按钮部署" :visible.sync="dialogTableVisible2">
+      <el-form>
+        <el-form-item label="按钮文字">
+          <el-input v-model="key" placeholder="请输入内容"></el-input>
+        </el-form-item>
+        <el-form-item label="按钮触发的函数（会自动创建一个空函数）">
+          <el-input v-model="value" placeholder="请输入内容"></el-input>
+        </el-form-item>
+        <el-form-item>
+          <el-col :span="24">
+            <el-button type="danger"
+                       @click.native="addkv()"
+                       style="width: 100%;margin-top: 20px;">
+              确定
+            </el-button>
+          </el-col>
+        </el-form-item>
+      </el-form>
     </el-dialog>
   </div>
 </template>
@@ -182,11 +230,13 @@ export default {
       textarea: '',
       template: '',
       es: '',
-      data: [],
+      data: [], // 表单字段集合（用于生成表单)
+      tabledata: [], // 表格字段集合(用于生成表格)
       key: '',
       value: '',
       dialogTableVisible: false,
       dialogTableVisible1: false,
+      dialogTableVisible2: false,
       entitycode: '',
       componentss: [
         { value: 1, label: '输入框组件' },
@@ -198,32 +248,37 @@ export default {
         { value: 7, label: 'upload上传组件' },
       ],
       selectvalue: [],
-      submit: [],
+      submit: [], // 表单提交参数
       currentindex: 0,
+      currentGenerate: 1, // 1生成表单 2生成表格
+      tablesubmit: [], // 表格提交参数
     };
   },
   methods: {
-    jsonsubmit() {
-      this.postAndJson('/node/getjson', {
-        content: this.textarea,
-      }).then((res) => {
-        this.data = res.data.content;
-        this.data.forEach((v) => {
-          this.submit.push({
-            field: v.name,
-            componentsstype: 1, // 当前选择的下标
-            placeholder: '',
-            label: '',
-            required: false, // 是否必填
-            valid: false, // 是否校验
-            min: 0,
-            max: 0,
-            rows: 0,
-            drag: false, // 是否可以拖动
-            selectvalue: [], // 选择框选项
+    jsonsubmit(code) {
+      this.currentGenerate = code;
+      if (code === 1) {
+        this.postAndJson('/node/getjson', {
+          content: this.textarea,
+        }).then((res) => {
+          this.data = res.data.content;
+          this.data.forEach((v) => {
+            this.submit.push({
+              field: v.name,
+              componentsstype: 1, // 当前选择的下标
+              placeholder: '',
+              label: '',
+              required: false, // 是否必填
+              valid: false, // 是否校验
+              min: 0,
+              max: 0,
+              rows: 0,
+              drag: false, // 是否可以拖动
+              selectvalue: [], // 选择框选项
+            });
           });
         });
-      });
+      }
     },
     // 新增选择框key value
     addkv() {
@@ -243,7 +298,11 @@ export default {
     },
     // 解析实体类代码
     resolveEntity() {
-
+      this.$confirm('该功能在建设中...', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning',
+      });
     },
     onchange(file) {
       console.log(file);
@@ -252,7 +311,7 @@ export default {
 };
 </script>
 
-<style scoped>
+<style>
   * {
     font-family: Consolas;
   }
@@ -279,6 +338,10 @@ export default {
 
   .content .right {
     margin-left: 50px;
+    width: 350px;
+  }
+
+  .content .left {
     width: 350px;
   }
 
