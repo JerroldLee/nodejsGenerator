@@ -1,6 +1,7 @@
 const router = require('koa-router')()
 const os = require('os')
 const ejs = require('ejs')
+const readline = require('readline')
 const fs = require('fs')
 
 router.prefix('/node')
@@ -54,7 +55,41 @@ router.post('/generate', async (ctx, next) => {
 
 
 router.post('/resolve', async (ctx, next) => {
-
+  let fieldArr = await resolveFile(ctx)
+  ctx.body = {
+    data: fieldArr,
+    status: 200
+  }
 })
+
+function resolveFile(ctx) {
+  return new Promise((resolve) => {
+    const rl = readline.createInterface({
+      input: fs.createReadStream(ctx.request.files.file.path),
+      crlfDelay: Infinity
+    });
+
+    const fieldArr = [];
+    rl.on('line', (line) => {
+      if (line.indexOf('private') !== -1 && line.indexOf('=') === -1) {
+        const arr = line.trim().split(' ')
+        arr.forEach((v, i) => {
+          if (!v || v === ';') {
+            arr.splice(i, 1)
+          }
+        })
+        let str = arr[arr.length - 1]
+        if (str.indexOf(';') && str.length > 1) {
+          str = str.substring(0, str.length - 1)
+        }
+        fieldArr.push(str)
+      }
+    });
+
+    rl.on('close', () => {
+      resolve(fieldArr)
+    })
+  })
+}
 
 module.exports = router

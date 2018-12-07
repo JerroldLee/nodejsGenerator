@@ -295,6 +295,7 @@ export default {
         this.template = res.data.template;
         this.es = res.data.es;
       });
+      window.scrollTo(0, 0);
     },
     // 解析实体类代码
     resolveEntity() {
