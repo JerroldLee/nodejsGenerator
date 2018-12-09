@@ -52,6 +52,10 @@ router.post('/generate', async (ctx, next) => {
   }
 })
 
+router.post('/generateTable', async (ctx, next) => {
+
+})
+
 
 router.post('/resolve', async (ctx, next) => {
 

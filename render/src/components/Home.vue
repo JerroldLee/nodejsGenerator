@@ -29,7 +29,7 @@
         </el-button>
       </div>
       <div class="right">
-        <div class="box" v-for="(item,index) in data" :key="index">
+        <div class="box" v-for="(item,index) in data" :key="index" v-if="currentGenerate === 1">
           <span>字段: {{submit[index].field}}</span>
           <el-form>
             <el-form-item label="选择组件类型">
@@ -112,29 +112,34 @@
             <!-- textarea选择框属性 end -->
           </el-form>
         </div>
-        <!--<div class="box">-->
-          <!--<span>字段: name</span>-->
-          <!--<el-form>-->
-            <!--<el-form-item label="输入显示值(通常为中文)">-->
-              <!--<el-input placeholder="请输入内容(不填则使用默认语句)"></el-input>-->
-            <!--</el-form-item>-->
-            <!--<el-form-item label="是否需要render函数（自定义时使用）">-->
-              <!--<el-switch-->
-                <!--active-color="#13ce66"-->
-                <!--inactive-color="#ff4949">-->
-              <!--</el-switch>-->
-            <!--</el-form-item>-->
-          <!--</el-form>-->
-        <!--</div>-->
-        <!--<el-form>-->
-          <!--<el-form-item label="是否需要'操作'按钮?">-->
-            <!--<el-switch-->
-              <!--v-model="dialogTableVisible2"-->
-              <!--active-color="#13ce66"-->
-              <!--inactive-color="#ff4949">-->
-            <!--</el-switch>-->
-          <!--</el-form-item>-->
-        <!--</el-form>-->
+        <div class="box" v-for="(item,index) in data" :key="index" v-if="currentGenerate === 2">
+          <span>字段: {{item.field}}</span>
+          <el-form>
+            <el-form-item label="输入显示值(通常为中文)">
+              <el-input v-model="tablesubmit[index].label"
+                        placeholder="请输入内容(不填则使用默认语句)"></el-input>
+            </el-form-item>
+            <el-form-item label="是否需要render函数（自定义时使用）">
+              <el-switch
+                v-model="tablesubmit[index].needrender"
+                active-color="#13ce66"
+                inactive-color="#ff4949">
+              </el-switch>
+            </el-form-item>
+          </el-form>
+        </div>
+        <el-form v-if="currentGenerate === 2">
+          <el-form-item label="是否需要'操作'按钮?">
+            <el-switch
+              v-model="dialogTableVisible2"
+              active-color="#13ce66"
+              inactive-color="#ff4949">
+            </el-switch>
+          </el-form-item>
+          <el-form-item label="操作函数">
+            {{tableoperate}}
+          </el-form-item>
+        </el-form>
         <el-form>
           <el-form-item>
             <el-col :span="24">
@@ -204,15 +209,15 @@
     <el-dialog title="操作按钮部署" :visible.sync="dialogTableVisible2">
       <el-form>
         <el-form-item label="按钮文字">
-          <el-input v-model="key" placeholder="请输入内容"></el-input>
+          <el-input v-model="operateLabel" placeholder="请输入内容"></el-input>
         </el-form-item>
         <el-form-item label="按钮触发的函数（会自动创建一个空函数）">
-          <el-input v-model="value" placeholder="请输入内容"></el-input>
+          <el-input v-model="operateFunc" placeholder="请输入内容"></el-input>
         </el-form-item>
         <el-form-item>
           <el-col :span="24">
             <el-button type="danger"
-                       @click.native="addkv()"
+                       @click.native="addOperate"
                        style="width: 100%;margin-top: 20px;">
               确定
             </el-button>
@@ -252,17 +257,21 @@ export default {
       currentindex: 0,
       currentGenerate: 1, // 1生成表单 2生成表格
       tablesubmit: [], // 表格提交参数
+      tableoperate: [], // 表格操作参数
+      operateLabel: '', // 表格操作label
+      operateFunc: '', // 表格操作的函数名
     };
   },
   methods: {
     jsonsubmit(code) {
       this.currentGenerate = code;
-      if (code === 1) {
-        this.postAndJson('/node/getjson', {
-          content: this.textarea,
-        }).then((res) => {
-          this.data = res.data.content;
-          this.data.forEach((v) => {
+      this.postAndJson('/node/getjson', {
+        content: this.textarea,
+      }).then((res) => {
+        this.data = res.data.content;
+        this.data.forEach((v) => {
+          if (this.currentGenerate === 1) {
+            this.submit = [];
             this.submit.push({
               field: v.name,
               componentsstype: 1, // 当前选择的下标
@@ -276,9 +285,16 @@ export default {
               drag: false, // 是否可以拖动
               selectvalue: [], // 选择框选项
             });
-          });
+          } else {
+            this.tablesubmit = [];
+            this.tablesubmit.push({
+              field: v.name,
+              label: '',
+              needrender: false,
+            });
+          }
         });
-      }
+      });
     },
     // 新增选择框key value
     addkv() {
@@ -290,11 +306,30 @@ export default {
       this.value = '';
       this.dialogTableVisible = false;
     },
-    generate() {
-      this.postAndJson('/node/generate', this.submit).then((res) => {
-        this.template = res.data.template;
-        this.es = res.data.es;
+    addOperate() {
+      this.tableoperate.push({
+        label: this.operateLabel,
+        func: this.operateFunc,
       });
+      this.operateLabel = '';
+      this.operateFunc = '';
+      this.dialogTableVisible2 = false;
+    },
+    generate() {
+      if (this.currentGenerate === 1) {
+        this.postAndJson('/node/generate', this.submit).then((res) => {
+          this.template = res.data.template;
+          this.es = res.data.es;
+        });
+      } else {
+        this.postAndJson('/node/generateTable', {
+          table: this.tablesubmit,
+          operate: this.tableoperate,
+        }).then((res) => {
+          this.template = res.data.template;
+          this.es = res.data.es;
+        });
+      }
     },
     // 解析实体类代码
     resolveEntity() {
